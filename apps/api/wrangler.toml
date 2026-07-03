@@ -1,0 +1,66 @@
+name = "ratama-tracker-api"
+main = "src/index.ts"
+compatibility_date = "2025-07-18"
+workers_dev = true
+
+[vars]
+APP_ENV = "local"
+APP_NAME = "Ratama Project & Finance Tracker"
+ALLOWED_ORIGIN = "http://localhost:5173"
+MAX_UPLOAD_SIZE_MB = "5"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rmc_local"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "../../packages/db/migrations"
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "rmc-local-files"
+
+[env.staging]
+name = "ratama-tracker-api-staging"
+workers_dev = false
+routes = [
+  { pattern = "staging-rmc.alfrzhb.com/api/*", zone_name = "alfrzhb.com" }
+]
+
+[env.staging.vars]
+APP_ENV = "staging"
+APP_NAME = "Ratama Project & Finance Tracker"
+ALLOWED_ORIGIN = "https://staging-rmc.alfrzhb.com"
+MAX_UPLOAD_SIZE_MB = "5"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "rmc_staging"
+database_id = "<RMC_STAGING_D1_DATABASE_ID>"
+migrations_dir = "../../packages/db/migrations"
+
+[[env.staging.r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "rmc-staging-files"
+
+[env.production]
+name = "ratama-tracker-api-production"
+workers_dev = false
+routes = [
+  { pattern = "rmc.alfrzhb.com/api/*", zone_name = "alfrzhb.com" }
+]
+
+[env.production.vars]
+APP_ENV = "production"
+APP_NAME = "Ratama Project & Finance Tracker"
+ALLOWED_ORIGIN = "https://rmc.alfrzhb.com"
+MAX_UPLOAD_SIZE_MB = "5"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "rmc_production"
+database_id = "<RMC_PRODUCTION_D1_DATABASE_ID>"
+migrations_dir = "../../packages/db/migrations"
+
+[[env.production.r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "rmc-production-files"

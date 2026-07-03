@@ -1,0 +1,23 @@
+{
+  "name": "api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "build": "tsc --noEmit -p tsconfig.json --pretty",
+    "typecheck": "tsc --noEmit -p tsconfig.json --pretty"
+  },
+  "dependencies": {
+    "@ratama/db": "workspace:*",
+    "@ratama/shared": "workspace:*",
+    "@ratama/validation": "workspace:*",
+    "drizzle-orm": "^0.38.4",
+    "hono": "^4.6.16",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250718.0",
+    "wrangler": "^3.114.17"
+  }
+}

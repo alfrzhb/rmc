@@ -1,0 +1,128 @@
+export const APP_NAME = "Ratama Project & Finance Tracker";
+
+export const USER_ROLES = [
+  "OWNER",
+  "ADMIN",
+  "FINANCE",
+  "PROJECT_MANAGER",
+  "STAFF"
+] as const;
+
+export const USER_STATUSES = ["ACTIVE", "INACTIVE", "SUSPENDED"] as const;
+
+export const CLIENT_STATUSES = [
+  "ACTIVE",
+  "INACTIVE",
+  "PROSPECT",
+  "BLACKLISTED"
+] as const;
+
+export const OPPORTUNITY_STATUSES = [
+  "NEW",
+  "PROPOSAL_DRAFT",
+  "PROPOSAL_SENT",
+  "FOLLOW_UP",
+  "NEGOTIATION",
+  "WON",
+  "LOST",
+  "ON_HOLD"
+] as const;
+
+export const PROJECT_STATUSES = [
+  "NOT_STARTED",
+  "KICKOFF",
+  "IN_PROGRESS",
+  "WAITING_CLIENT",
+  "INTERNAL_REVIEW",
+  "REVISION",
+  "COMPLETED",
+  "CLOSED",
+  "CANCELLED"
+] as const;
+
+export const INVOICE_STATUSES = [
+  "PLANNED",
+  "DRAFT",
+  "SENT",
+  "PARTIALLY_PAID",
+  "PAID",
+  "OVERDUE",
+  "CANCELLED"
+] as const;
+
+export const PAYMENT_STATUSES = ["VALID", "CANCELLED"] as const;
+
+export const PAYABLE_STATUSES = [
+  "UNPAID",
+  "WAITING_APPROVAL",
+  "APPROVED",
+  "SCHEDULED",
+  "PAID",
+  "OVERDUE",
+  "CANCELLED"
+] as const;
+
+export const ACTIVITY_TYPES = [
+  "MEETING",
+  "CALL",
+  "WHATSAPP_FOLLOW_UP",
+  "EMAIL_SENT",
+  "DOCUMENT_RECEIVED",
+  "DOCUMENT_REVIEWED",
+  "REPORT_DRAFTED",
+  "REPORT_SUBMITTED",
+  "REVISION_REQUESTED",
+  "CLIENT_APPROVAL",
+  "INTERNAL_DISCUSSION",
+  "PROPOSAL_SENT",
+  "PROPOSAL_REVISED",
+  "NEGOTIATION_NOTE",
+  "CLIENT_FEEDBACK",
+  "OTHER"
+] as const;
+
+export const PAYMENT_METHODS = ["BANK_TRANSFER", "CASH", "GIRO", "OTHER"] as const;
+
+export const PROJECT_MEMBER_ROLES = [
+  "PIC",
+  "CONSULTANT",
+  "FINANCE_SUPPORT",
+  "ADMIN_SUPPORT",
+  "REVIEWER",
+  "OTHER"
+] as const;
+
+export const COST_CATEGORIES = [
+  "SUBCONTRACTOR",
+  "TRANSPORT",
+  "ACCOMMODATION",
+  "DOCUMENT_PRINTING",
+  "CERTIFICATION_COST",
+  "CONSULTANT_FEE",
+  "OPERATIONAL",
+  "OTHER"
+] as const;
+
+export const ATTACHMENT_LINKED_TYPES = [
+  "CLIENT",
+  "OPPORTUNITY",
+  "OPPORTUNITY_LOG",
+  "PROJECT",
+  "PROJECT_ACTIVITY",
+  "INVOICE",
+  "PAYMENT",
+  "PAYABLE"
+] as const;
+
+export const ATTACHMENT_KINDS = [
+  "PROPOSAL",
+  "CONTRACT",
+  "SPK",
+  "PO",
+  "PROJECT_DOCUMENT",
+  "INVOICE_FILE",
+  "PAYMENT_PROOF",
+  "VENDOR_BILL",
+  "AP_PAYMENT_PROOF",
+  "OTHER"
+] as const;

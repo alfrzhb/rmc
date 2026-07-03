@@ -1,0 +1,4 @@
+APP_ENV=local
+APP_NAME=Ratama Project & Finance Tracker
+ALLOWED_ORIGIN=http://localhost:5173
+MAX_UPLOAD_SIZE_MB=5

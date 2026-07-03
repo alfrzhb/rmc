@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["@cloudflare/workers-types"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@ratama/shared": ["../../packages/shared/src/index.ts"],
+      "@ratama/validation": ["../../packages/validation/src/index.ts"],
+      "@ratama/db": ["../../packages/db/src/index.ts"]
+    }
+  },
+  "include": ["src", "wrangler.toml"]
+}

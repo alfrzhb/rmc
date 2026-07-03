@@ -1,0 +1,41 @@
+{
+  "name": "ratama-project-finance-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.30.3",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "build:web": "pnpm --filter web build",
+    "build:api": "pnpm --filter api build",
+    "deploy:web:staging": "pnpm build:web && pnpm --filter api exec wrangler pages deploy ../web/dist --project-name ratama-tracker-web-staging --branch develop",
+    "deploy:web:production": "pnpm build:web && pnpm --filter api exec wrangler pages deploy ../web/dist --project-name ratama-tracker-web-production --branch main",
+    "deploy:api:staging": "pnpm --filter api exec wrangler deploy --env staging",
+    "deploy:api:production": "pnpm --filter api exec wrangler deploy --env production",
+    "db:create:staging": "pnpm --filter api exec wrangler d1 create rmc_staging",
+    "db:create:production": "pnpm --filter api exec wrangler d1 create rmc_production",
+    "db:migrate:local": "pnpm --filter api exec wrangler d1 migrations apply rmc_local --local",
+    "db:migrate:staging": "pnpm --filter api exec wrangler d1 migrations apply rmc_staging --remote",
+    "db:migrate:production": "pnpm --filter api exec wrangler d1 migrations apply rmc_production --remote",
+    "r2:create:staging": "pnpm --filter api exec wrangler r2 bucket create rmc-staging-files",
+    "r2:create:production": "pnpm --filter api exec wrangler r2 bucket create rmc-production-files",
+    "cf:login": "pnpm --filter api exec wrangler login",
+    "cf:whoami": "pnpm --filter api exec wrangler whoami",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r --parallel typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.10.5",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.20.0"
+  }
+}
