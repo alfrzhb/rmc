@@ -4,6 +4,9 @@ import type {
   ATTACHMENT_LINKED_TYPES,
   CLIENT_STATUSES,
   COST_CATEGORIES,
+  DOCUMENT_KINDS,
+  DOCUMENT_LINKED_TYPES,
+  DOCUMENT_PROVIDERS,
   INVOICE_STATUSES,
   OPPORTUNITY_STATUSES,
   PAYABLE_STATUSES,
@@ -27,6 +30,9 @@ export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 export type ProjectMemberRole = (typeof PROJECT_MEMBER_ROLES)[number];
 export type CostCategory = (typeof COST_CATEGORIES)[number];
+export type DocumentLinkedType = (typeof DOCUMENT_LINKED_TYPES)[number];
+export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
+export type DocumentProvider = (typeof DOCUMENT_PROVIDERS)[number];
 export type AttachmentLinkedType = (typeof ATTACHMENT_LINKED_TYPES)[number];
 export type AttachmentKind = (typeof ATTACHMENT_KINDS)[number];
 

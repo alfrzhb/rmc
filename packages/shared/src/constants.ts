@@ -103,7 +103,7 @@ export const COST_CATEGORIES = [
   "OTHER"
 ] as const;
 
-export const ATTACHMENT_LINKED_TYPES = [
+export const DOCUMENT_LINKED_TYPES = [
   "CLIENT",
   "OPPORTUNITY",
   "OPPORTUNITY_LOG",
@@ -114,7 +114,7 @@ export const ATTACHMENT_LINKED_TYPES = [
   "PAYABLE"
 ] as const;
 
-export const ATTACHMENT_KINDS = [
+export const DOCUMENT_KINDS = [
   "PROPOSAL",
   "CONTRACT",
   "SPK",
@@ -126,3 +126,14 @@ export const ATTACHMENT_KINDS = [
   "AP_PAYMENT_PROOF",
   "OTHER"
 ] as const;
+
+export const DOCUMENT_PROVIDERS = [
+  "GOOGLE_DRIVE",
+  "ONEDRIVE",
+  "DROPBOX",
+  "EXTERNAL_URL",
+  "OTHER"
+] as const;
+
+export const ATTACHMENT_LINKED_TYPES = DOCUMENT_LINKED_TYPES;
+export const ATTACHMENT_KINDS = DOCUMENT_KINDS;
