@@ -6,6 +6,7 @@ Tanggal update Phase 15 custom domain staging: 2026-07-05
 Tanggal update Phase 15 staging user bootstrap: 2026-07-05
 Tanggal update Phase 15 staging functional verification: 2026-07-05
 Tanggal finalisasi Phase 15 staging verification: 2026-07-05
+Tanggal update pre-production Users Management refinement: 2026-07-05
 
 ## Ringkasan Eksekutif
 
@@ -22,6 +23,7 @@ Kesimpulan terbaru:
 - Document Link UI sudah memakai selector linked record untuk entity utama, bukan raw ID.
 - Delete action sudah memakai confirmation.
 - Form create reset setelah mutation sukses.
+- Settings -> Users Management sudah tersedia untuk OWNER/ADMIN.
 - CI workflow sudah ditambahkan untuk lint/typecheck/build.
 - Phase 14 local smoke test tetap lulus.
 
@@ -33,7 +35,7 @@ Status terbaru:
 - `/api/auth/me` staging sudah berhasil untuk OWNER `v60code@gmail.com`.
 - Automated CLI verification untuk protected API/CRUD masih membutuhkan sesi Cloudflare Access atau service token test; CLI tanpa session diarahkan ke login Access.
 - Browser-level UI automation belum ada.
-- Reports, Settings, dan Users management UI masih placeholder.
+- Reports masih placeholder.
 - `ALLOWED_ORIGIN` masih berupa config yang belum dipakai middleware karena API saat ini didesain same-origin lewat `/api`.
 
 ## Update Phase 15 Staging
@@ -164,6 +166,60 @@ Staging functional verification matrix:
 | Payable CRUD | Lulus manual | Create/list/detail/update/delete berjalan di browser staging. |
 | Document Link CRUD | Lulus manual | Create/list/detail/update/delete document link berjalan tanpa R2/binary upload. |
 
+## Pre-production Users Management Refinement
+
+Status per 2026-07-05: selesai.
+
+Users API audit:
+
+| Endpoint | Status | Catatan |
+| --- | --- | --- |
+| `GET /api/users` | Sesuai | OWNER/ADMIN only; mengembalikan non-deleted users. |
+| `GET /api/users/:id` | Sesuai | OWNER/ADMIN only; `404` untuk user tidak ditemukan/deleted. |
+| `POST /api/users` | Sesuai | OWNER/ADMIN only; validasi email/name/role/status; konflik email `409`. |
+| `PUT /api/users/:id` | Sesuai | OWNER/ADMIN only; update email/name/role/status; menulis audit log. |
+| `DELETE /api/users/:id` | Sesuai | OWNER/ADMIN only; soft delete dengan status `INACTIVE` dan `deleted_at`. |
+
+UI yang ditambahkan:
+
+- Settings -> Users Management menggantikan placeholder Settings.
+- Halaman hanya bisa digunakan oleh role `OWNER` dan `ADMIN`.
+- Role `STAFF` melihat restricted state di UI dan tetap ditolak backend dengan `403`.
+- User list menampilkan name, email, role, status, dan last login.
+- Create user tersedia untuk `email`, `name`, `role`, dan `status`.
+- Edit user tersedia untuk `email`, `name`, `role`, dan `status`.
+- Role options di UI dibatasi ke `OWNER`, `ADMIN`, dan `STAFF`.
+- Status options di UI dibatasi ke `ACTIVE` dan `INACTIVE`.
+- Deactivate dan delete memakai confirmation.
+- Delete tetap soft delete di backend.
+- Help text ditambahkan: `Login menggunakan Cloudflare Access. User tetap harus didaftarkan di aplikasi agar bisa masuk sesuai role.`
+- Unregistered Access identity sekarang menampilkan: `Akun Anda belum terdaftar di aplikasi. Hubungi OWNER/ADMIN.`
+
+Verification:
+
+- `pnpm lint`: lulus.
+- `pnpm typecheck`: lulus.
+- `pnpm build:web`: lulus.
+- `pnpm build:api`: lulus.
+- Local migration check: `pnpm db:migrate:local` lulus, tidak ada migration pending.
+- Local Users API test via Worker:
+  - OWNER `/api/auth/me`: lulus.
+  - OWNER `GET /api/users`: lulus.
+  - OWNER `POST /api/users`: lulus.
+  - OWNER `PUT /api/users/:id` untuk role/status: lulus.
+  - OWNER `DELETE /api/users/:id`: lulus.
+  - STAFF `GET /api/users`: ditolak `403`, sesuai ekspektasi.
+  - INACTIVE user `GET /api/clients`: ditolak `403`, sesuai ekspektasi.
+
+Guardrail:
+
+- Production tidak dideploy.
+- Production D1 tidak dibuat atau diubah.
+- DNS `rmc.alfrzhb.com` tidak dibuat.
+- Staging yang sudah berjalan tidak diubah/deploy ulang.
+- R2 tidak dipakai.
+- Binary upload tidak diaktifkan.
+
 ## Status Eksekusi Rekomendasi 1-7
 
 | No  | Rekomendasi                                             | Status  | Implementasi                                                                                                     |
@@ -226,7 +282,7 @@ Probe tambahan manual via local Worker juga pernah dijalankan dan lulus:
 | Arsitektur Cloudflare Pages + Workers + D1 + Access      | Sesuai                 | Tech stack dan config Worker mengikuti docs.                                        |
 | External Document Link, tanpa R2                         | Sesuai                 | `document_links` aktif, upload binary legacy disabled, tidak ada R2 binding.        |
 | Access identity via `cf-access-authenticated-user-email` | Sesuai                 | Protected APIs memakai active user lookup.                                          |
-| Users API dan RBAC                                       | Sesuai backend         | API ada dan owner/admin restricted. UI settings/users belum dibuat.                 |
+| Users API dan RBAC                                       | Sesuai                 | API owner/admin restricted; Settings -> Users Management tersedia untuk OWNER/ADMIN. |
 | Clients dan contacts                                     | Sesuai                 | Backend CRUD lulus; UI list/create/delete/detail/edit + contacts tersedia.          |
 | Opportunities dan logs                                   | Sesuai                 | Backend CRUD lulus; UI list/create/delete/detail/edit + logs tersedia.              |
 | Projects, members, activities, progress                  | Sesuai                 | Backend lulus; UI list/create/delete/detail/edit + members/activities tersedia.     |
@@ -238,6 +294,7 @@ Probe tambahan manual via local Worker juga pernah dijalankan dan lulus:
 | Phase 14 testing                                         | Sesuai lokal           | `pnpm test:phase14:local` lulus.                                                    |
 | CI                                                       | Ada                    | GitHub Actions config sudah ditambahkan; akan berjalan setelah push/PR.             |
 | Phase 15 staging deployment                              | Selesai                | Custom domain, route, Access, OWNER staging, `/api/auth/me`, dashboard, dan critical CRUD lulus manual. |
+| Pre-production Users Management                          | Selesai                | Settings -> Users Management, RBAC UI, create/edit/deactivate/delete, and local API verification done. |
 | Production readiness                                     | Belum                  | Production D1 ID masih placeholder sesuai guardrail.                                |
 
 ## Temuan Yang Sudah Resolved
@@ -339,16 +396,16 @@ Rekomendasi:
   - invoice/payment flow
   - document link selector flow
 
-### O3. Reports, Settings, dan Users UI masih placeholder
+### O3. Reports UI masih placeholder
 
 Severity: Low
 
-Backend users API sudah ada dan audit logs API sudah ada, tetapi UI Settings/Users dan Reports belum dibuat.
+Backend users API dan Settings -> Users Management sudah ada. Reports UI masih placeholder.
 
 Rekomendasi:
 
-- Jika staging MVP cukup dengan owner/admin bootstrap manual, biarkan sebagai refinement.
-- Jika user management perlu dilakukan dari app, buat Settings > Users sebelum production.
+- Buat Reports UI bila dibutuhkan sebelum production.
+- Audit Logs UI juga masih bisa menjadi refinement untuk OWNER/ADMIN.
 
 ### O4. `ALLOWED_ORIGIN` belum dipakai middleware
 
@@ -373,17 +430,18 @@ Rekomendasi:
 - Local Vite proxy mengirim header Access lokal.
 - Phase 14 smoke test repeatable dan membersihkan data test.
 - UI detail/edit dan nested workflow utama sudah tersedia.
+- Users Management UI tersedia untuk OWNER/ADMIN.
 - CI lint/typecheck/build sudah dikonfigurasi.
 
 ## Rekomendasi Urutan Kerja Berikutnya
 
 1. Mulai Phase 16 production preparation hanya setelah konfirmasi eksplisit user.
-2. Sebelum Phase 16, konfirmasi production D1, domain `rmc.alfrzhb.com`, DNS, Access policy, dan deployment checklist.
+2. Sebelum Phase 16, konfirmasi production D1, domain `rmc.alfrzhb.com`, DNS, Access policy, first OWNER, dan deployment checklist.
 3. Jika verifikasi otomatis diperlukan, siapkan Cloudflare Access service token test atau workflow `cloudflared access`.
 4. Pastikan GitHub Actions CI lulus di remote.
 5. Tambahkan browser automation jika staging flow sudah stabil.
-6. Buat Settings/Users dan Reports UI bila dibutuhkan sebelum production.
+6. Buat Reports/Audit Logs UI bila dibutuhkan sebelum production.
 
 ## Status Akhir Audit
 
-Phase 15 staging verification selesai. D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, Cloudflare Access, OWNER bootstrap staging, `/api/auth/me`, dashboard, dan critical CRUD sudah tervalidasi melalui browser manual test. CLI tanpa Access session tetap diarahkan `302` ke Cloudflare Access login dan itu expected. Production belum disentuh; Phase 16 production preparation hanya boleh dimulai setelah konfirmasi eksplisit user.
+Phase 15 staging verification selesai, dan pre-production Users Management refinement juga selesai. D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, Cloudflare Access, OWNER bootstrap staging, `/api/auth/me`, dashboard, critical CRUD, dan Settings -> Users Management sudah tervalidasi. CLI tanpa Access session tetap diarahkan `302` ke Cloudflare Access login dan itu expected. Production belum disentuh; Phase 16 production preparation hanya boleh dimulai setelah konfirmasi eksplisit user.

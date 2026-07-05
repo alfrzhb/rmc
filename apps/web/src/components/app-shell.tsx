@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { Bell, Menu, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ApiRequestError } from "@/lib/api";
 import { useCurrentUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { appRoutes, primaryMobileRoutes, type AppRoute } from "@/routes";
@@ -82,7 +83,9 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </header>
 
-        {currentUser.isError ? <AuthWarning onRetry={() => currentUser.refetch()} /> : null}
+        {currentUser.isError ? (
+          <AuthWarning error={currentUser.error} onRetry={() => currentUser.refetch()} />
+        ) : null}
 
         <main className="px-4 py-6 lg:px-8">{children}</main>
       </div>
@@ -215,11 +218,16 @@ function AuthBadge({
   );
 }
 
-function AuthWarning({ onRetry }: { onRetry: () => void }) {
+function AuthWarning({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
+  const message =
+    error instanceof ApiRequestError && error.code === "USER_NOT_REGISTERED"
+      ? "Akun Anda belum terdaftar di aplikasi. Hubungi OWNER/ADMIN."
+      : "Access identity is not connected to an active app user.";
+
   return (
     <div className="border-b bg-accent px-4 py-3 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 text-sm text-accent-foreground sm:flex-row sm:items-center sm:justify-between">
-        <span>Access identity is not connected to an active app user.</span>
+        <span>{message}</span>
         <Button size="sm" type="button" variant="outline" onClick={onRetry}>
           <RefreshCw className="h-4 w-4" />
           <span>Retry</span>

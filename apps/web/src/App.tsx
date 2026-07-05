@@ -15,6 +15,7 @@ import {
 } from "@/pages/finance-pages";
 import { OpportunitiesPage, OpportunityDetailPage } from "@/pages/opportunities-page";
 import { ProjectDetailPage, ProjectsPage } from "@/pages/projects-page";
+import { SettingsPage } from "@/pages/settings-page";
 import { appRoutes } from "@/routes";
 
 const pageMap = {
@@ -25,7 +26,8 @@ const pageMap = {
   "/invoices": <InvoicesPage />,
   "/payments": <PaymentsPage />,
   "/payables": <PayablesPage />,
-  "/document-links": <DocumentLinksPage />
+  "/document-links": <DocumentLinksPage />,
+  "/settings": <SettingsPage />
 };
 
 export default function App() {

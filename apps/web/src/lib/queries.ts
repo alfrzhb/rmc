@@ -12,6 +12,7 @@ export type UserOption = {
   email: string;
   role: string;
   status: string;
+  last_login_at?: string | null;
 };
 
 export type ProjectOption = {

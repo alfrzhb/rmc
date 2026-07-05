@@ -2,9 +2,9 @@
 
 ## Current Position
 
-The project has completed the local MVP checkpoint through Phase 14. Backend foundation APIs are implemented, the frontend supports the main create/list/delete module flows, and the repeatable local Phase 14 smoke suite passes. The next major milestone is Phase 15 staging deployment and staging verification.
+The project has completed Phase 15 staging verification and the pre-production Users Management refinement. Backend foundation APIs are implemented, the frontend supports the main module workflows, staging browser verification passed, and Settings now includes OWNER/ADMIN-only Users Management.
 
-D1 staging has been created and earlier migrations have been applied. Production has not been deployed. DNS, nameserver, and domain settings must not be changed without confirmation.
+D1 staging has been created and migrations have been applied. Production has not been deployed. Production D1, production DNS, and production deployment remain blocked until explicit confirmation.
 
 ## Active MVP Architecture
 
@@ -127,7 +127,7 @@ The legacy `attachments` table may remain from `0001`, but it is not used by act
 
 ## Phase 4 - Access and Users
 
-Status: completed for backend foundation.
+Status: completed for backend foundation and pre-production Users Management UI.
 
 Implement Cloudflare Access identity handling and app-level user records.
 
@@ -136,6 +136,9 @@ Acceptance criteria:
 - Access email is read from Worker headers.
 - Users table maps Access identity to app role.
 - Inactive users cannot use protected APIs.
+- OWNER and ADMIN can manage app users from Settings.
+- STAFF cannot access Users Management.
+- User records are manually created by OWNER/ADMIN; self-registration is not allowed.
 
 Implemented API:
 
@@ -161,6 +164,16 @@ Protected APIs require a registered active user matching the Cloudflare Access e
 ```text
 cf-access-authenticated-user-email
 ```
+
+Pre-production UI refinement:
+
+- Settings -> Users Management lists app users.
+- OWNER/ADMIN can create users.
+- OWNER/ADMIN can edit user email, name, role, and status.
+- UI role options are limited to `OWNER`, `ADMIN`, and `STAFF`.
+- UI status options are limited to `ACTIVE` and `INACTIVE`.
+- OWNER/ADMIN can deactivate or soft delete users after confirmation.
+- Unregistered Access identities see: `Akun Anda belum terdaftar di aplikasi. Hubungi OWNER/ADMIN.`
 
 ## Phase 5 - Clients
 
@@ -385,7 +398,7 @@ Acceptance criteria:
 - Sidebar and mobile navigation are available.
 - Frontend uses `GET /api/auth/me` for current user state.
 - Login check page shows current user mapping status.
-- Core module placeholder pages exist for dashboard, clients, opportunities, projects, finance, reports, settings, and document-related workflows.
+- Core module pages exist for dashboard, clients, opportunities, projects, finance, settings/users, and document-related workflows. Reports remains a placeholder refinement.
 - Local Vite dev can proxy `/api` requests to the local Worker.
 
 ## Phase 13 - Frontend Modules
@@ -402,6 +415,46 @@ Acceptance criteria:
 - Document Links screen can list, create, and delete external document links.
 - Screens use `/api/auth/me` identity through the frontend shell.
 - MVP UI does not expose binary upload or R2 features.
+- Settings exposes Users Management for OWNER/ADMIN.
+
+## Phase 13.5 - Pre-production Users Management Refinement
+
+Status: completed on 2026-07-05.
+
+Scope:
+
+- Audit existing Users API.
+- Build Settings -> Users Management UI.
+- Restrict Users Management UI to OWNER and ADMIN.
+- Keep Cloudflare Access as the authentication gate.
+- Keep app-level role/status in the `users` table.
+- Prevent free self-registration by requiring OWNER/ADMIN-created user records.
+
+Implemented UI:
+
+- User list.
+- Create user.
+- Edit user.
+- Change role.
+- Change status between `ACTIVE` and `INACTIVE`.
+- Deactivate user.
+- Soft delete user after confirmation.
+- Access help text explaining Cloudflare Access plus app registration.
+- Clear unregistered-user message in the app shell.
+
+Verification:
+
+- `pnpm lint` passed.
+- `pnpm typecheck` passed.
+- `pnpm build:web` passed.
+- `pnpm build:api` passed.
+- Local Users API test passed:
+  - OWNER can list users.
+  - OWNER can create users.
+  - OWNER can edit role/status.
+  - OWNER can soft delete/deactivate users.
+  - STAFF cannot access Users Management API.
+  - INACTIVE users cannot use protected APIs.
 
 ## Phase 14 - Testing
 
@@ -424,7 +477,7 @@ Local automation:
 
 ## Phase 15 - Staging Deployment
 
-Status: partially completed on 2026-07-05.
+Status: completed on 2026-07-05.
 
 Completed:
 
@@ -432,12 +485,12 @@ Completed:
 - Worker staging deployed to `ratama-tracker-api-staging`.
 - Cloudflare Pages project `ratama-tracker-web-staging` was created.
 - Pages staging deployed and responds at `https://ratama-tracker-web-staging.pages.dev`.
-
-Blocked / pending confirmation:
-
-- `https://staging-rmc.alfrzhb.com/api/health` could not be verified because `staging-rmc.alfrzhb.com` does not currently resolve in DNS.
-- Cloudflare Access for the staging custom domain still needs to be configured/verified after the staging domain is active.
-- Document Link CRUD on the staging custom domain still needs verification after Access and DNS are ready.
+- Custom domain `staging-rmc.alfrzhb.com` works.
+- Worker route `staging-rmc.alfrzhb.com/api/*` works.
+- Cloudflare Access works.
+- `/api/health` works.
+- `/api/auth/me` works for `usr_owner_001 / v60code@gmail.com / OWNER / ACTIVE`.
+- Dashboard and critical CRUD flows passed manual browser verification.
 
 Tasks:
 
@@ -448,7 +501,7 @@ Tasks:
 5. Test `/api/health`.
 6. Test Document Link CRUD.
 
-Do not change DNS, nameserver, or production settings without confirmation.
+Do not change DNS, nameserver, staging settings, or production settings without confirmation.
 
 ## Phase 16 - Production Preparation
 
