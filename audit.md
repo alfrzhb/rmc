@@ -4,6 +4,7 @@ Tanggal audit awal: 2026-07-05
 Tanggal update pasca-eksekusi rekomendasi: 2026-07-05
 Tanggal update Phase 15 custom domain staging: 2026-07-05
 Tanggal update Phase 15 staging user bootstrap: 2026-07-05
+Tanggal update Phase 15 staging functional verification: 2026-07-05
 
 ## Ringkasan Eksekutif
 
@@ -27,7 +28,8 @@ Sisa pekerjaan utama:
 
 - Phase 15 custom domain, Worker route, dan Cloudflare Access sudah aktif menurut verifikasi manual user.
 - Bootstrap app user staging untuk email Access `v60code@gmail.com` sudah dilakukan di D1 staging.
-- Automated CLI verification untuk protected API/CRUD masih membutuhkan sesi Cloudflare Access atau service token test.
+- `/api/auth/me` staging sudah berhasil untuk OWNER `v60code@gmail.com`.
+- Automated CLI verification untuk protected API/CRUD masih membutuhkan sesi Cloudflare Access atau service token test; CLI tanpa session diarahkan ke login Access.
 - Browser-level UI automation belum ada.
 - Reports, Settings, dan Users management UI masih placeholder.
 - `ALLOWED_ORIGIN` masih berupa config yang belum dipakai middleware karena API saat ini didesain same-origin lewat `/api`.
@@ -56,13 +58,12 @@ Custom-domain staging attempt per 2026-07-05:
 - Percobaan membuat DNS CNAME `staging-rmc -> ratama-tracker-web-staging.pages.dev` dengan `proxied=true` ditolak Cloudflare API: `Authentication error`.
 - Percobaan membaca/mengelola Cloudflare Access app juga ditolak Cloudflare API: `Authentication error`.
 
-Belum selesai karena blocker:
+Historical blocker yang sudah resolved manual:
 
-- DNS record `staging-rmc.alfrzhb.com` belum bisa dibuat/diverifikasi dari token saat ini.
-- `https://staging-rmc.alfrzhb.com` belum resolve DNS.
-- `https://staging-rmc.alfrzhb.com/api/health` belum bisa diverifikasi karena DNS belum resolve.
-- Cloudflare Access staging belum bisa dibuat/diverifikasi karena token saat ini tidak punya permission Access yang dibutuhkan.
-- Login Access, `GET /api/auth/me`, dashboard load, dan CRUD staging belum bisa dites sebelum DNS dan Access siap.
+- DNS record/custom domain `staging-rmc.alfrzhb.com` sempat belum bisa dibuat dari token CLI.
+- Cloudflare Access staging sempat belum bisa dikonfigurasi dari token CLI.
+- Setelah konfigurasi manual, frontend staging, `/api/health`, Cloudflare Access login, dan `/api/auth/me` sudah berhasil.
+- Sisa verifikasi adalah dashboard dan CRUD staging melalui browser/session Access.
 
 Guardrail:
 
@@ -104,6 +105,46 @@ Verification setelah bootstrap:
 - Ini menunjukkan Access gate aktif, tetapi CLI belum memiliki cookie Access untuk menguji protected endpoint.
 - Karena tidak ada `cloudflared`/Playwright authenticated session/service token test di repo, verifikasi otomatis dashboard dan CRUD staging belum bisa diselesaikan dari CLI.
 - Langkah manual berikutnya adalah refresh browser yang sudah login Access lalu cek `/api/auth/me`, banner UI, dan flow CRUD utama.
+
+Functional verification update dari user per 2026-07-05:
+
+- Cloudflare Access login berhasil memakai `v60code@gmail.com`.
+- `GET https://staging-rmc.alfrzhb.com/api/auth/me` berhasil dari browser yang sudah login Access.
+- Response `/api/auth/me`:
+  - `success`: `true`
+  - `id`: `usr_owner_001`
+  - `email`: `v60code@gmail.com`
+  - `role`: `OWNER`
+  - `status`: `ACTIVE`
+- Kesimpulan: custom domain, Worker route, Cloudflare Access, dan app user mapping sudah berhasil.
+
+Agent CLI verification per 2026-07-05:
+
+- `curl https://staging-rmc.alfrzhb.com/api/auth/me` tanpa Access session mengembalikan `302 Found` ke Cloudflare Access login.
+- `curl https://staging-rmc.alfrzhb.com/api/health` tanpa Access session juga mengembalikan `302 Found` ke Cloudflare Access login.
+- Percobaan menambahkan header `cf-access-authenticated-user-email: v60code@gmail.com` dari CLI tetap diarahkan ke login Access.
+- Root cause: Cloudflare Access mencegah request CLI tanpa cookie/session Access; ini expected dan bukan error aplikasi.
+
+Staging functional verification matrix:
+
+| Flow | Status | Catatan |
+| --- | --- | --- |
+| Frontend load | Lulus manual | `https://staging-rmc.alfrzhb.com` membuka frontend staging. |
+| API health | Lulus manual | `/api/health` mengembalikan `{"status":"ok","service":"ratama-tracker-api"}` dari browser/session Access. |
+| Cloudflare Access login | Lulus manual | Login memakai `v60code@gmail.com`. |
+| App user mapping | Lulus manual | `/api/auth/me` mengembalikan `usr_owner_001`, role `OWNER`, status `ACTIVE`. |
+| Dashboard load | Belum terverifikasi agent | Membutuhkan browser/session Access; CLI tanpa session mendapat `302`. |
+| Client CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Client contact CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Opportunity CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Opportunity log CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Project CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Project member CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Project activity CRUD dan progress update | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Invoice CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Payment CRUD dan invoice status sync | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Payable CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
+| Document Link CRUD | Belum terverifikasi agent | Membutuhkan browser/session Access. |
 
 ## Status Eksekusi Rekomendasi 1-7
 
@@ -178,7 +219,7 @@ Probe tambahan manual via local Worker juga pernah dijalankan dan lulus:
 | Phase 13 UI acceptance                                   | Selesai dan terlampaui | Acceptance create/list/delete terpenuhi; detail/edit refinement sudah ditambahkan.  |
 | Phase 14 testing                                         | Sesuai lokal           | `pnpm test:phase14:local` lulus.                                                    |
 | CI                                                       | Ada                    | GitHub Actions config sudah ditambahkan; akan berjalan setelah push/PR.             |
-| Phase 15 staging deployment                              | Sebagian besar selesai | Custom domain, route, Access, dan OWNER staging aktif; CRUD staging masih perlu verifikasi browser dengan sesi Access. |
+| Phase 15 staging deployment                              | Sebagian besar selesai | Custom domain, route, Access, OWNER staging, dan `/api/auth/me` aktif; CRUD staging masih perlu verifikasi browser dengan sesi Access. |
 | Production readiness                                     | Belum                  | Production D1 ID masih placeholder sesuai guardrail.                                |
 
 ## Temuan Yang Sudah Resolved
@@ -256,15 +297,13 @@ Workflow `.github/workflows/ci.yml` ditambahkan untuk:
 
 Severity: Medium
 
-Phase 15 sudah dijalankan sebagian besar. D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, dan Cloudflare Access sudah aktif. Root cause `USER_NOT_REGISTERED` adalah belum adanya app user aktif untuk email Access `v60code@gmail.com`; ini sudah diperbaiki dengan bootstrap OWNER di D1 staging.
+Phase 15 sudah dijalankan sebagian besar. D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, Cloudflare Access, dan `/api/auth/me` sudah aktif. Root cause `USER_NOT_REGISTERED` sudah diperbaiki dengan bootstrap OWNER di D1 staging.
 
 Rekomendasi:
 
-- Refresh browser yang sudah login Cloudflare Access sebagai `v60code@gmail.com`.
-- Test `GET /api/auth/me`; expected user `usr_owner_001`, role `OWNER`, status `ACTIVE`.
-- Pastikan banner `Access identity is not connected to an active app user.` sudah hilang.
+- Pastikan banner `Access identity is not connected to an active app user.` sudah hilang di dashboard browser.
 - Jika ingin automated staging verification dari CLI, siapkan Cloudflare Access service token test atau `cloudflared access` login workflow.
-- Test `https://staging-rmc.alfrzhb.com`, `https://staging-rmc.alfrzhb.com/api/health`, auth, dashboard, dan critical CRUD through Cloudflare Access.
+- Test dashboard dan critical CRUD through Cloudflare Access browser session.
 
 ### O2. Browser-level UI automation belum ada
 
@@ -320,9 +359,9 @@ Rekomendasi:
 
 ## Rekomendasi Urutan Kerja Berikutnya
 
-1. Refresh browser yang sudah login Cloudflare Access sebagai `v60code@gmail.com`.
-2. Verifikasi `/api/auth/me` sudah mengembalikan OWNER aktif dan banner user mapping hilang.
-3. Test staging lewat browser dan API custom domain untuk dashboard, clients, opportunities/logs, projects/members/activities, invoice/payment, payable, dan document links.
+1. Verifikasi banner user mapping hilang di dashboard browser.
+2. Test staging lewat browser dan API custom domain untuk dashboard, clients, contacts, opportunities/logs, projects/members/activities, invoice/payment, payable, dan document links.
+3. Catat hasil tiap CRUD staging setelah dijalankan dari session Access.
 4. Jika verifikasi otomatis diperlukan, siapkan Cloudflare Access service token test atau workflow `cloudflared access`.
 5. Pastikan GitHub Actions CI lulus di remote.
 6. Tambahkan browser automation jika staging flow sudah stabil.
@@ -330,4 +369,4 @@ Rekomendasi:
 
 ## Status Akhir Audit
 
-Proyek sudah melewati sebagian besar Phase 15 deployment: D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, Cloudflare Access, dan OWNER bootstrap staging sudah aktif. Staging belum bisa dinyatakan selesai penuh sampai browser yang sudah login Access memverifikasi `/api/auth/me`, dashboard, dan critical CRUD. Production tetap belum boleh dilakukan sebelum staging tervalidasi dan production D1 dikonfirmasi.
+Proyek sudah melewati sebagian besar Phase 15 deployment: D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, Cloudflare Access, OWNER bootstrap staging, dan `/api/auth/me` sudah aktif. Staging belum bisa dinyatakan selesai penuh sampai browser yang sudah login Access memverifikasi dashboard dan critical CRUD. Production tetap belum boleh dilakukan sebelum staging tervalidasi dan production D1 dikonfirmasi.
