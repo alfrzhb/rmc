@@ -2,7 +2,7 @@
 
 ## Current Position
 
-The project has completed Phase 15 staging verification and the pre-production Users Management refinement. Backend foundation APIs are implemented, the frontend supports the main module workflows, staging browser verification passed, and Settings now includes OWNER/ADMIN-only Users Management. The Users Management refinement has been deployed to Pages staging.
+The project has completed Phase 15 staging verification and the pre-production Users Management refinement. Backend foundation APIs are implemented, the frontend supports the main module workflows, staging browser verification passed, Settings now includes OWNER/ADMIN-only Users Management, and Cloudflare Access One-time PIN login has been verified for staging.
 
 D1 staging has been created and migrations have been applied. Production has not been deployed. Production D1, production DNS, and production deployment remain blocked until explicit confirmation.
 
@@ -139,6 +139,8 @@ Acceptance criteria:
 - OWNER and ADMIN can manage app users from Settings.
 - STAFF cannot access Users Management.
 - User records are manually created by OWNER/ADMIN; self-registration is not allowed.
+- Recommended production login method is Cloudflare Access One-time PIN/email OTP.
+- Users must pass both Cloudflare Access policy and the RMC `users` table role/status check.
 
 Implemented API:
 
@@ -164,6 +166,25 @@ Protected APIs require a registered active user matching the Cloudflare Access e
 ```text
 cf-access-authenticated-user-email
 ```
+
+Access model:
+
+1. Cloudflare Access controls who may reach the application domain.
+2. RMC `users` table controls app role and active/inactive status after Access login.
+
+For Ratama employees, use Cloudflare Access One-time PIN/email OTP. Employees do not need to be Cloudflare account members as long as their email is allowed by the Access policy and registered as `ACTIVE` in RMC Users Management.
+
+`Sign in with Cloudflare` is only appropriate for users who are Cloudflare account members. It is not the recommended employee login method for this app.
+
+Staging OTP verification:
+
+- Access Application `staging-rmc` uses One-time PIN.
+- Policy `Allow Alfarizi` includes:
+  - `v60code@gmail.com`
+  - `m.alfarizihabibullah@gmail.com`
+- RMC user `m.alfarizihabibullah@gmail.com` exists as `ADMIN` and `ACTIVE`.
+- Login via OTP for `m.alfarizihabibullah@gmail.com` succeeded.
+- `/api/auth/me` returned the matching email and role.
 
 Pre-production UI refinement:
 

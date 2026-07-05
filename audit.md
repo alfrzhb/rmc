@@ -8,6 +8,7 @@ Tanggal update Phase 15 staging functional verification: 2026-07-05
 Tanggal finalisasi Phase 15 staging verification: 2026-07-05
 Tanggal update pre-production Users Management refinement: 2026-07-05
 Tanggal deploy staging Users Management refinement: 2026-07-05
+Tanggal update One-time PIN login verification: 2026-07-05
 
 ## Ringkasan Eksekutif
 
@@ -26,6 +27,7 @@ Kesimpulan terbaru:
 - Form create reset setelah mutation sukses.
 - Settings -> Users Management sudah tersedia untuk OWNER/ADMIN.
 - Users Management refinement sudah dideploy ke Pages staging.
+- Cloudflare Access One-time PIN/email OTP sudah diverifikasi di staging.
 - CI workflow sudah ditambahkan untuk lint/typecheck/build.
 - Phase 14 local smoke test tetap lulus.
 
@@ -33,8 +35,10 @@ Status terbaru:
 
 - Phase 15 staging verification selesai berdasarkan browser test manual user.
 - Custom domain, Worker route, dan Cloudflare Access sudah aktif.
+- Access Application staging memakai One-time PIN.
 - Bootstrap app user staging untuk email Access `v60code@gmail.com` sudah dilakukan di D1 staging.
 - `/api/auth/me` staging sudah berhasil untuk OWNER `v60code@gmail.com`.
+- `/api/auth/me` staging juga berhasil untuk ADMIN `m.alfarizihabibullah@gmail.com` melalui OTP.
 - Automated CLI verification untuk protected API/CRUD masih membutuhkan sesi Cloudflare Access atau service token test; CLI tanpa session diarahkan ke login Access.
 - Browser-level UI automation belum ada.
 - Reports masih placeholder.
@@ -167,6 +171,31 @@ Staging functional verification matrix:
 | Payment CRUD dan invoice status sync | Lulus manual | Payments berjalan dan status invoice tersinkron. |
 | Payable CRUD | Lulus manual | Create/list/detail/update/delete berjalan di browser staging. |
 | Document Link CRUD | Lulus manual | Create/list/detail/update/delete document link berjalan tanpa R2/binary upload. |
+
+## One-time PIN Login Verification
+
+Status per 2026-07-05: selesai.
+
+Hasil verifikasi:
+
+- Cloudflare Access One-time PIN sudah ditambahkan.
+- Access Application `staging-rmc` sudah menggunakan One-time PIN.
+- Policy `Allow Alfarizi` mencakup:
+  - `v60code@gmail.com`
+  - `m.alfarizihabibullah@gmail.com`
+- User RMC untuk `m.alfarizihabibullah@gmail.com` sudah dibuat sebagai `ADMIN` dan `ACTIVE`.
+- Login via OTP untuk `m.alfarizihabibullah@gmail.com` berhasil.
+- `/api/auth/me` berhasil menampilkan email dan role yang sesuai.
+
+Implikasi akses:
+
+- Karyawan Ratama tidak perlu punya akun Cloudflare.
+- Karyawan cukup login via One-time PIN/email OTP selama email mereka diizinkan di Cloudflare Access policy dan terdaftar `ACTIVE` di RMC Users Management.
+- `Sign in with Cloudflare` hanya cocok untuk user yang merupakan Cloudflare account member.
+- Login aplikasi RMC memakai dua lapis akses:
+  - Cloudflare Access policy mengizinkan email mencapai aplikasi.
+  - RMC `users` table menentukan role aplikasi dan status `ACTIVE`/`INACTIVE`.
+- User yang lolos OTP tetapi belum ada atau tidak aktif di RMC `users` table tetap tidak boleh memakai protected API.
 
 ## Pre-production Users Management Refinement
 
@@ -319,6 +348,7 @@ Probe tambahan manual via local Worker juga pernah dijalankan dan lulus:
 | External Document Link, tanpa R2                         | Sesuai                 | `document_links` aktif, upload binary legacy disabled, tidak ada R2 binding.        |
 | Access identity via `cf-access-authenticated-user-email` | Sesuai                 | Protected APIs memakai active user lookup.                                          |
 | Users API dan RBAC                                       | Sesuai                 | API owner/admin restricted; Settings -> Users Management tersedia untuk OWNER/ADMIN. |
+| Cloudflare Access One-time PIN                           | Sesuai                 | OTP verified untuk `m.alfarizihabibullah@gmail.com`; app role/status tetap dari RMC users table. |
 | Clients dan contacts                                     | Sesuai                 | Backend CRUD lulus; UI list/create/delete/detail/edit + contacts tersedia.          |
 | Opportunities dan logs                                   | Sesuai                 | Backend CRUD lulus; UI list/create/delete/detail/edit + logs tersedia.              |
 | Projects, members, activities, progress                  | Sesuai                 | Backend lulus; UI list/create/delete/detail/edit + members/activities tersedia.     |
@@ -458,6 +488,7 @@ Rekomendasi:
 
 - Backend route map lengkap dan sesuai module aktif di docs.
 - Protected APIs memakai `requireActiveUser`.
+- Cloudflare Access One-time PIN login sudah tervalidasi untuk user non-Cloudflare-account-member.
 - Users dan audit logs dibatasi OWNER/ADMIN.
 - Soft delete diterapkan di module utama dan submodule.
 - Document Link API memvalidasi linked entity dan URL.
@@ -472,7 +503,7 @@ Rekomendasi:
 ## Rekomendasi Urutan Kerja Berikutnya
 
 1. Mulai Phase 16 production preparation hanya setelah konfirmasi eksplisit user.
-2. Sebelum Phase 16, konfirmasi production D1, domain `rmc.alfrzhb.com`, DNS, Access policy, first OWNER, dan deployment checklist.
+2. Sebelum Phase 16, konfirmasi production D1, domain `rmc.alfrzhb.com`, DNS, Access One-time PIN policy, first OWNER/ADMIN users, dan deployment checklist.
 3. Jika verifikasi otomatis diperlukan, siapkan Cloudflare Access service token test atau workflow `cloudflared access`.
 4. Pastikan GitHub Actions CI lulus di remote.
 5. Tambahkan browser automation jika staging flow sudah stabil.
@@ -480,4 +511,4 @@ Rekomendasi:
 
 ## Status Akhir Audit
 
-Phase 15 staging verification selesai, dan pre-production Users Management refinement juga selesai. D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, Cloudflare Access, OWNER bootstrap staging, `/api/auth/me`, dashboard, critical CRUD, dan Settings -> Users Management sudah tervalidasi. CLI tanpa Access session tetap diarahkan `302` ke Cloudflare Access login dan itu expected. Production belum disentuh; Phase 16 production preparation hanya boleh dimulai setelah konfirmasi eksplisit user.
+Phase 15 staging verification selesai, pre-production Users Management refinement selesai, dan Cloudflare Access One-time PIN/email OTP sudah tervalidasi. D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, Cloudflare Access, OWNER/ADMIN user mapping, `/api/auth/me`, dashboard, critical CRUD, dan Settings -> Users Management sudah tervalidasi. Karyawan Ratama dapat login via email OTP jika email diizinkan di Access policy dan terdaftar `ACTIVE` di RMC `users` table. CLI tanpa Access session tetap diarahkan `302` ke Cloudflare Access login dan itu expected. Production belum disentuh; Phase 16 production preparation hanya boleh dimulai setelah konfirmasi eksplisit user.
