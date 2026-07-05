@@ -23,10 +23,33 @@ Kesimpulan terbaru:
 
 Sisa pekerjaan utama:
 
-- Phase 15 staging deployment dan staging verification.
+- Phase 15 staging custom-domain verification and Access configuration.
 - Browser-level UI automation belum ada.
 - Reports, Settings, dan Users management UI masih placeholder.
 - `ALLOWED_ORIGIN` masih berupa config yang belum dipakai middleware karena API saat ini didesain same-origin lewat `/api`.
+
+## Update Phase 15 Staging
+
+Status per 2026-07-05:
+
+- Git checkpoint `3a47c8c` sudah dipush ke `origin/main`.
+- Staging D1 migration command berhasil; tidak ada migration pending.
+- Worker staging berhasil deploy ke `ratama-tracker-api-staging`.
+- Worker staging memakai D1 binding `rmc_staging`.
+- Worker staging tetap tanpa R2 binding.
+- Cloudflare Pages project `ratama-tracker-web-staging` dibuat.
+- Pages staging berhasil deploy.
+- Frontend staging tersedia dan merespons `200` di `https://ratama-tracker-web-staging.pages.dev`.
+
+Belum selesai:
+
+- `https://staging-rmc.alfrzhb.com/api/health` belum bisa diverifikasi karena `staging-rmc.alfrzhb.com` belum resolve DNS.
+- Cloudflare Access staging belum bisa diverifikasi penuh sebelum staging custom domain aktif.
+- Document Link CRUD staging via custom domain belum bisa dites sebelum DNS dan Access siap.
+
+Guardrail:
+
+- DNS, nameserver, dan custom domain tidak diubah dalam eksekusi ini karena docs meminta konfirmasi eksplisit sebelum perubahan domain/DNS.
 
 ## Status Eksekusi Rekomendasi 1-7
 
@@ -85,24 +108,24 @@ Probe tambahan manual via local Worker juga pernah dijalankan dan lulus:
 
 ## Kesesuaian Dengan Docs
 
-| Area                                                     | Status Terbaru         | Catatan                                                                            |
-| -------------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------- |
-| Arsitektur Cloudflare Pages + Workers + D1 + Access      | Sesuai                 | Tech stack dan config Worker mengikuti docs.                                       |
-| External Document Link, tanpa R2                         | Sesuai                 | `document_links` aktif, upload binary legacy disabled, tidak ada R2 binding.       |
-| Access identity via `cf-access-authenticated-user-email` | Sesuai                 | Protected APIs memakai active user lookup.                                         |
-| Users API dan RBAC                                       | Sesuai backend         | API ada dan owner/admin restricted. UI settings/users belum dibuat.                |
-| Clients dan contacts                                     | Sesuai                 | Backend CRUD lulus; UI list/create/delete/detail/edit + contacts tersedia.         |
-| Opportunities dan logs                                   | Sesuai                 | Backend CRUD lulus; UI list/create/delete/detail/edit + logs tersedia.             |
-| Projects, members, activities, progress                  | Sesuai                 | Backend lulus; UI list/create/delete/detail/edit + members/activities tersedia.    |
-| Finance: invoices, payments, payables                    | Sesuai                 | API dan smoke test lulus; UI list/create/delete/detail/edit tersedia.              |
-| Dashboard summary                                        | Sesuai                 | UI membaca `/api/dashboard/summary`.                                               |
-| Document Links                                           | Sesuai                 | CRUD tersedia; UI memakai selector linked record untuk entity utama.               |
-| Audit logs                                               | Sesuai backend         | API filter dan RBAC lulus; UI audit log belum ada.                                 |
-| Phase 13 UI acceptance                                   | Selesai dan terlampaui | Acceptance create/list/delete terpenuhi; detail/edit refinement sudah ditambahkan. |
-| Phase 14 testing                                         | Sesuai lokal           | `pnpm test:phase14:local` lulus.                                                   |
-| CI                                                       | Ada                    | GitHub Actions config sudah ditambahkan; akan berjalan setelah push/PR.            |
-| Phase 15 staging deployment                              | Belum                  | Tahap berikutnya.                                                                  |
-| Production readiness                                     | Belum                  | Production D1 ID masih placeholder sesuai guardrail.                               |
+| Area                                                     | Status Terbaru         | Catatan                                                                             |
+| -------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------- |
+| Arsitektur Cloudflare Pages + Workers + D1 + Access      | Sesuai                 | Tech stack dan config Worker mengikuti docs.                                        |
+| External Document Link, tanpa R2                         | Sesuai                 | `document_links` aktif, upload binary legacy disabled, tidak ada R2 binding.        |
+| Access identity via `cf-access-authenticated-user-email` | Sesuai                 | Protected APIs memakai active user lookup.                                          |
+| Users API dan RBAC                                       | Sesuai backend         | API ada dan owner/admin restricted. UI settings/users belum dibuat.                 |
+| Clients dan contacts                                     | Sesuai                 | Backend CRUD lulus; UI list/create/delete/detail/edit + contacts tersedia.          |
+| Opportunities dan logs                                   | Sesuai                 | Backend CRUD lulus; UI list/create/delete/detail/edit + logs tersedia.              |
+| Projects, members, activities, progress                  | Sesuai                 | Backend lulus; UI list/create/delete/detail/edit + members/activities tersedia.     |
+| Finance: invoices, payments, payables                    | Sesuai                 | API dan smoke test lulus; UI list/create/delete/detail/edit tersedia.               |
+| Dashboard summary                                        | Sesuai                 | UI membaca `/api/dashboard/summary`.                                                |
+| Document Links                                           | Sesuai                 | CRUD tersedia; UI memakai selector linked record untuk entity utama.                |
+| Audit logs                                               | Sesuai backend         | API filter dan RBAC lulus; UI audit log belum ada.                                  |
+| Phase 13 UI acceptance                                   | Selesai dan terlampaui | Acceptance create/list/delete terpenuhi; detail/edit refinement sudah ditambahkan.  |
+| Phase 14 testing                                         | Sesuai lokal           | `pnpm test:phase14:local` lulus.                                                    |
+| CI                                                       | Ada                    | GitHub Actions config sudah ditambahkan; akan berjalan setelah push/PR.             |
+| Phase 15 staging deployment                              | Sebagian selesai       | D1/Worker/Pages selesai; custom-domain DNS, Access, dan CRUD staging masih pending. |
+| Production readiness                                     | Belum                  | Production D1 ID masih placeholder sesuai guardrail.                                |
 
 ## Temuan Yang Sudah Resolved
 
@@ -175,20 +198,19 @@ Workflow `.github/workflows/ci.yml` ditambahkan untuk:
 
 ## Temuan Terbuka
 
-### O1. Staging belum diverifikasi
+### O1. Staging custom domain dan Access belum diverifikasi
 
 Severity: Medium
 
-Phase 15 belum dijalankan. Local verification sudah kuat, tetapi staging tetap perlu dibuktikan setelah push/deploy.
+Phase 15 sudah dijalankan sebagian. D1 staging, Worker staging, dan Pages staging sudah berhasil. Verifikasi custom-domain API belum dapat dilakukan karena `staging-rmc.alfrzhb.com` belum resolve DNS. Access staging dan CRUD staging perlu diverifikasi setelah domain aktif.
 
 Rekomendasi:
 
-- Apply D1 staging migrations.
-- Deploy Worker staging.
-- Deploy Pages staging.
-- Test `/api/health`.
-- Seed/verify OWNER user staging.
-- Test auth and critical CRUD through Cloudflare Access.
+- Konfirmasi apakah boleh mengaktifkan/memperbaiki DNS untuk `staging-rmc.alfrzhb.com`.
+- Setelah DNS aktif, test `https://staging-rmc.alfrzhb.com/api/health`.
+- Configure/verify Cloudflare Access untuk staging.
+- Seed/verify OWNER user staging sesuai email Cloudflare Access.
+- Test auth dan critical CRUD through Cloudflare Access.
 
 ### O2. Browser-level UI automation belum ada
 
@@ -244,14 +266,14 @@ Rekomendasi:
 
 ## Rekomendasi Urutan Kerja Berikutnya
 
-1. Commit dan push perubahan audit/refinement/CI.
-2. Pastikan GitHub Actions CI lulus di remote.
-3. Lanjut Phase 15 staging deployment.
-4. Seed/verify OWNER user staging sesuai Cloudflare Access email.
-5. Test staging lewat browser dan API.
+1. Konfirmasi perubahan DNS/custom domain untuk `staging-rmc.alfrzhb.com`.
+2. Configure/verify Cloudflare Access untuk staging setelah domain aktif.
+3. Seed/verify OWNER user staging sesuai Cloudflare Access email.
+4. Test staging lewat browser dan API custom domain.
+5. Pastikan GitHub Actions CI lulus di remote.
 6. Tambahkan browser automation jika staging flow sudah stabil.
 7. Buat Settings/Users dan Reports UI bila dibutuhkan sebelum production.
 
 ## Status Akhir Audit
 
-Proyek sudah layak lanjut ke Phase 15 staging preparation. Secara lokal, implementation docs, backend, UI utama, nested workflow utama, dan smoke test sudah sinkron. Production tetap belum boleh dilakukan sebelum staging tervalidasi dan production D1 dikonfirmasi.
+Proyek sudah melewati sebagian besar Phase 15 deployment: D1 staging, Worker staging, dan Pages staging sudah aktif. Staging belum bisa dinyatakan selesai penuh sampai custom-domain DNS, Cloudflare Access, health check custom domain, dan critical CRUD staging tervalidasi. Production tetap belum boleh dilakukan sebelum staging tervalidasi dan production D1 dikonfirmasi.

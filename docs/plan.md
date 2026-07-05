@@ -424,6 +424,21 @@ Local automation:
 
 ## Phase 15 - Staging Deployment
 
+Status: partially completed on 2026-07-05.
+
+Completed:
+
+- Staging D1 migration command ran successfully; no migrations were pending.
+- Worker staging deployed to `ratama-tracker-api-staging`.
+- Cloudflare Pages project `ratama-tracker-web-staging` was created.
+- Pages staging deployed and responds at `https://ratama-tracker-web-staging.pages.dev`.
+
+Blocked / pending confirmation:
+
+- `https://staging-rmc.alfrzhb.com/api/health` could not be verified because `staging-rmc.alfrzhb.com` does not currently resolve in DNS.
+- Cloudflare Access for the staging custom domain still needs to be configured/verified after the staging domain is active.
+- Document Link CRUD on the staging custom domain still needs verification after Access and DNS are ready.
+
 Tasks:
 
 1. Apply D1 staging migrations.
