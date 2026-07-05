@@ -21,6 +21,7 @@
     "cf:login": "pnpm --filter api exec wrangler login",
     "cf:whoami": "pnpm --filter api exec wrangler whoami",
     "lint": "eslint .",
+    "test:phase14:local": "node scripts/phase14-local.mjs",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --parallel typecheck"
   },

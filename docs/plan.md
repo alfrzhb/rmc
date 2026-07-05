@@ -377,9 +377,29 @@ Acceptance criteria:
 
 Build navigation, layout, auth state, and placeholder pages.
 
+Acceptance criteria:
+
+- React app has a protected application shell layout.
+- Sidebar and mobile navigation are available.
+- Frontend uses `GET /api/auth/me` for current user state.
+- Login check page shows current user mapping status.
+- Core module placeholder pages exist for dashboard, clients, opportunities, projects, finance, reports, settings, and document-related workflows.
+- Local Vite dev can proxy `/api` requests to the local Worker.
+
 ## Phase 13 - Frontend Modules
 
 Build client, opportunity, project, finance, dashboard, and document link screens.
+
+Acceptance criteria:
+
+- Dashboard screen reads `/api/dashboard/summary`.
+- Clients screen can list, create, and delete clients.
+- Opportunities screen can list, create, and delete opportunities.
+- Projects screen can list, create, and delete projects.
+- Invoices, payments, and payables screens can list, create, and delete finance records.
+- Document Links screen can list, create, and delete external document links.
+- Screens use `/api/auth/me` identity through the frontend shell.
+- MVP UI does not expose binary upload or R2 features.
 
 ## Phase 14 - Testing
 
@@ -394,6 +414,11 @@ Test critical flows:
 - invoice and payment flow
 - payable flow
 - Document Link CRUD
+
+Local automation:
+
+- `pnpm test:phase14:local` applies local D1 migrations, starts the local Worker if needed, and runs the Phase 14 smoke suite.
+- The smoke suite covers health, user access, client CRUD, opportunity update flow, project update flow, invoice/payment sync, payable update flow, and Document Link CRUD.
 
 ## Phase 15 - Staging Deployment
 
