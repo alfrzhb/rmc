@@ -3,6 +3,7 @@
 Tanggal audit awal: 2026-07-05  
 Tanggal update pasca-eksekusi rekomendasi: 2026-07-05
 Tanggal update Phase 15 custom domain staging: 2026-07-05
+Tanggal update Phase 15 staging user bootstrap: 2026-07-05
 
 ## Ringkasan Eksekutif
 
@@ -24,7 +25,9 @@ Kesimpulan terbaru:
 
 Sisa pekerjaan utama:
 
-- Phase 15 staging custom-domain verification tertahan di DNS permission dan Access permission.
+- Phase 15 custom domain, Worker route, dan Cloudflare Access sudah aktif menurut verifikasi manual user.
+- Bootstrap app user staging untuk email Access `v60code@gmail.com` sudah dilakukan di D1 staging.
+- Automated CLI verification untuk protected API/CRUD masih membutuhkan sesi Cloudflare Access atau service token test.
 - Browser-level UI automation belum ada.
 - Reports, Settings, dan Users management UI masih placeholder.
 - `ALLOWED_ORIGIN` masih berupa config yang belum dipakai middleware karena API saat ini didesain same-origin lewat `/api`.
@@ -72,6 +75,35 @@ Guardrail:
 - Worker staging tetap `ratama-tracker-api-staging`.
 - Pages staging tetap `ratama-tracker-web-staging`.
 - Satu-satunya perubahan Cloudflare yang berhasil dibuat adalah Pages custom domain staging `staging-rmc.alfrzhb.com`; DNS record staging belum berhasil dibuat karena permission blocker.
+
+Manual verification update dari user per 2026-07-05:
+
+- `https://staging-rmc.alfrzhb.com` berhasil membuka frontend staging.
+- `https://staging-rmc.alfrzhb.com/api/health` berhasil dan mengembalikan `{"status":"ok","service":"ratama-tracker-api"}`.
+- Cloudflare Access login berhasil memakai email `v60code@gmail.com`.
+- `GET /api/auth/me` sempat gagal dengan `USER_NOT_REGISTERED`.
+- UI sempat menampilkan banner `Access identity is not connected to an active app user.`
+
+Staging user bootstrap per 2026-07-05:
+
+- Schema tabel `users` di D1 staging `rmc_staging` sudah diinspeksi dan sesuai migrasi.
+- Sebelum bootstrap, tidak ada row user untuk email `v60code@gmail.com`.
+- Tabel `users` staging kosong, sehingga `usr_owner_001` aman dipakai sebagai bootstrap id.
+- User OWNER aktif berhasil dibuat di D1 staging:
+  - `id`: `usr_owner_001`
+  - `email`: `v60code@gmail.com`
+  - `name`: `Owner Ratama`
+  - `role`: `OWNER`
+  - `status`: `ACTIVE`
+  - `deleted_at`: `NULL`
+- Setelah seed, query D1 staging mengembalikan row tersebut dengan role/status yang benar.
+
+Verification setelah bootstrap:
+
+- CLI tanpa sesi Cloudflare Access mendapat `302 Found` ke login Access untuk `https://staging-rmc.alfrzhb.com` dan `https://staging-rmc.alfrzhb.com/api/auth/me`.
+- Ini menunjukkan Access gate aktif, tetapi CLI belum memiliki cookie Access untuk menguji protected endpoint.
+- Karena tidak ada `cloudflared`/Playwright authenticated session/service token test di repo, verifikasi otomatis dashboard dan CRUD staging belum bisa diselesaikan dari CLI.
+- Langkah manual berikutnya adalah refresh browser yang sudah login Access lalu cek `/api/auth/me`, banner UI, dan flow CRUD utama.
 
 ## Status Eksekusi Rekomendasi 1-7
 
@@ -146,7 +178,7 @@ Probe tambahan manual via local Worker juga pernah dijalankan dan lulus:
 | Phase 13 UI acceptance                                   | Selesai dan terlampaui | Acceptance create/list/delete terpenuhi; detail/edit refinement sudah ditambahkan.  |
 | Phase 14 testing                                         | Sesuai lokal           | `pnpm test:phase14:local` lulus.                                                    |
 | CI                                                       | Ada                    | GitHub Actions config sudah ditambahkan; akan berjalan setelah push/PR.             |
-| Phase 15 staging deployment                              | Sebagian selesai       | D1/Worker/Pages selesai; Pages custom domain staging dibuat tetapi pending CNAME; Access dan CRUD staging masih pending. |
+| Phase 15 staging deployment                              | Sebagian besar selesai | Custom domain, route, Access, dan OWNER staging aktif; CRUD staging masih perlu verifikasi browser dengan sesi Access. |
 | Production readiness                                     | Belum                  | Production D1 ID masih placeholder sesuai guardrail.                                |
 
 ## Temuan Yang Sudah Resolved
@@ -224,16 +256,14 @@ Workflow `.github/workflows/ci.yml` ditambahkan untuk:
 
 Severity: Medium
 
-Phase 15 sudah dijalankan sebagian. D1 staging, Worker staging, Pages staging, dan Pages custom domain staging sudah dibuat. Zone `alfrzhb.com` aktif di Cloudflare, tetapi Pages custom domain masih pending karena DNS CNAME `staging-rmc.alfrzhb.com` belum ada. Token Cloudflare saat ini bisa membaca zone dan mengelola Pages/Worker route, tetapi ditolak saat membaca/membuat DNS record dan saat membaca/mengelola Cloudflare Access.
+Phase 15 sudah dijalankan sebagian besar. D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, dan Cloudflare Access sudah aktif. Root cause `USER_NOT_REGISTERED` adalah belum adanya app user aktif untuk email Access `v60code@gmail.com`; ini sudah diperbaiki dengan bootstrap OWNER di D1 staging.
 
 Rekomendasi:
 
-- Grant permission Cloudflare yang dibutuhkan untuk akun/token yang dipakai CLI: DNS edit/read untuk zone `alfrzhb.com` dan Cloudflare Access app/policy write untuk account `28d54cb4ff50f6276f19041b481d98c8`.
-- Buat DNS CNAME `staging-rmc` ke `ratama-tracker-web-staging.pages.dev` dengan proxy aktif.
-- Tunggu Pages custom domain berubah dari `pending` menjadi active/verified.
-- Configure/verify Cloudflare Access untuk `staging-rmc.alfrzhb.com`.
-- Policy awal hanya mengizinkan email tester yang sama dengan user OWNER staging.
-- Seed/verify OWNER user staging sesuai email Cloudflare Access.
+- Refresh browser yang sudah login Cloudflare Access sebagai `v60code@gmail.com`.
+- Test `GET /api/auth/me`; expected user `usr_owner_001`, role `OWNER`, status `ACTIVE`.
+- Pastikan banner `Access identity is not connected to an active app user.` sudah hilang.
+- Jika ingin automated staging verification dari CLI, siapkan Cloudflare Access service token test atau `cloudflared access` login workflow.
 - Test `https://staging-rmc.alfrzhb.com`, `https://staging-rmc.alfrzhb.com/api/health`, auth, dashboard, dan critical CRUD through Cloudflare Access.
 
 ### O2. Browser-level UI automation belum ada
@@ -290,16 +320,14 @@ Rekomendasi:
 
 ## Rekomendasi Urutan Kerja Berikutnya
 
-1. Berikan/grant Cloudflare permission DNS edit/read dan Access app/policy write untuk akun/token CLI.
-2. Buat DNS CNAME `staging-rmc` ke `ratama-tracker-web-staging.pages.dev` dengan proxy aktif.
-3. Tunggu Pages custom domain `staging-rmc.alfrzhb.com` verified.
-4. Configure/verify Cloudflare Access untuk staging setelah domain aktif.
-5. Seed/verify OWNER user staging sesuai Cloudflare Access email.
-6. Test staging lewat browser dan API custom domain.
-7. Pastikan GitHub Actions CI lulus di remote.
-8. Tambahkan browser automation jika staging flow sudah stabil.
-9. Buat Settings/Users dan Reports UI bila dibutuhkan sebelum production.
+1. Refresh browser yang sudah login Cloudflare Access sebagai `v60code@gmail.com`.
+2. Verifikasi `/api/auth/me` sudah mengembalikan OWNER aktif dan banner user mapping hilang.
+3. Test staging lewat browser dan API custom domain untuk dashboard, clients, opportunities/logs, projects/members/activities, invoice/payment, payable, dan document links.
+4. Jika verifikasi otomatis diperlukan, siapkan Cloudflare Access service token test atau workflow `cloudflared access`.
+5. Pastikan GitHub Actions CI lulus di remote.
+6. Tambahkan browser automation jika staging flow sudah stabil.
+7. Buat Settings/Users dan Reports UI bila dibutuhkan sebelum production.
 
 ## Status Akhir Audit
 
-Proyek sudah melewati sebagian besar Phase 15 deployment: D1 staging, Worker staging, Pages staging, dan Pages custom domain staging sudah dibuat. Staging belum bisa dinyatakan selesai penuh karena DNS CNAME staging belum bisa dibuat dengan permission token saat ini, Cloudflare Access belum bisa dikonfigurasi, health check custom domain belum resolve, dan critical CRUD staging belum tervalidasi. Production tetap belum boleh dilakukan sebelum staging tervalidasi dan production D1 dikonfirmasi.
+Proyek sudah melewati sebagian besar Phase 15 deployment: D1 staging, Worker staging, Pages staging, custom domain staging, Worker route, Cloudflare Access, dan OWNER bootstrap staging sudah aktif. Staging belum bisa dinyatakan selesai penuh sampai browser yang sudah login Access memverifikasi `/api/auth/me`, dashboard, dan critical CRUD. Production tetap belum boleh dilakukan sebelum staging tervalidasi dan production D1 dikonfirmasi.
