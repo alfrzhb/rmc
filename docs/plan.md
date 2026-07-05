@@ -2,7 +2,9 @@
 
 ## Current Position
 
-The project is around Phase 3. Local schema and migration `0001` already exist. D1 staging has been created and migration `0001` has been applied. Production has not been deployed. DNS, nameserver, and domain settings must not be changed without confirmation.
+The project has completed the local MVP checkpoint through Phase 14. Backend foundation APIs are implemented, the frontend supports the main create/list/delete module flows, and the repeatable local Phase 14 smoke suite passes. The next major milestone is Phase 15 staging deployment and staging verification.
+
+D1 staging has been created and earlier migrations have been applied. Production has not been deployed. DNS, nameserver, and domain settings must not be changed without confirmation.
 
 ## Active MVP Architecture
 
@@ -43,7 +45,7 @@ Scope:
 
 ## Phase 2 - Cloudflare Foundation
 
-Status: in progress.
+Status: completed for local and staging foundation; production remains blocked until approval.
 
 Scope:
 
@@ -103,7 +105,7 @@ Acceptance criteria:
 
 ## Phase 3 - Database Schema
 
-Status: in progress.
+Status: completed for active MVP schema.
 
 `0001_initial_schema.sql` exists and has already been applied to staging.
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Loader2, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +16,9 @@ export function ModulePage({ title, description, actions, children }: ModulePage
     <section className="mx-auto max-w-7xl pb-24">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-normal text-foreground">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-normal text-foreground">
+            {title}
+          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
             {description}
           </p>
@@ -48,13 +51,7 @@ export function Panel({
   );
 }
 
-export function Field({
-  children,
-  label
-}: {
-  children: ReactNode;
-  label: string;
-}) {
+export function Field({ children, label }: { children: ReactNode; label: string }) {
   return (
     <label className="grid gap-1.5 text-sm">
       <span className="font-medium text-foreground">{label}</span>
@@ -105,9 +102,11 @@ export function SubmitButton({
 }
 
 export function DeleteButton({
+  confirmLabel = "Delete this record?",
   disabled,
   onClick
 }: {
+  confirmLabel?: string;
   disabled?: boolean;
   onClick: () => void;
 }) {
@@ -118,9 +117,21 @@ export function DeleteButton({
       size="icon"
       type="button"
       variant="ghost"
-      onClick={onClick}
+      onClick={() => {
+        if (window.confirm(confirmLabel)) {
+          onClick();
+        }
+      }}
     >
       <Trash2 className="h-4 w-4 text-destructive" />
+    </Button>
+  );
+}
+
+export function DetailLink({ to }: { to: string }) {
+  return (
+    <Button asChild size="sm" type="button" variant="outline">
+      <Link to={to}>Open</Link>
     </Button>
   );
 }
