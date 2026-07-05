@@ -66,21 +66,20 @@ Frontend code must not access D1 directly.
 
 ## Core API Areas
 
-Current and planned API modules:
+Current API modules:
 
 - `/api/health`
 - `/api/auth/me`
 - `/api/users`
 - `/api/clients`
+- `/api/opportunities`
+- `/api/projects`
+- `/api/invoices`
+- `/api/payments`
+- `/api/payables`
+- `/api/dashboard/summary`
 - `/api/document-links`
-- clients
-- opportunities
-- projects
-- invoices
-- payments
-- payables
-- users and access identity
-- audit logs
+- `/api/audit-logs`
 
 The legacy binary upload route is disabled:
 

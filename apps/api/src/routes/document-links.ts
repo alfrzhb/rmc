@@ -6,6 +6,7 @@ import {
 } from "@ratama/validation";
 import type { DocumentKind, DocumentLinkedType, DocumentProvider } from "@ratama/shared";
 import type { AppEnv, Bindings } from "../env";
+import { writeAuditLog } from "../lib/audit";
 import { getDatabase } from "../lib/database";
 import { normalizeDocumentUrl } from "../lib/storage";
 
@@ -47,6 +48,22 @@ documentLinksRoute.get("/", async (c) => {
     return validationError(c, query.error.flatten());
   }
 
+  if (query.data.linked_type && query.data.linked_id) {
+    const canLink = await canAccessLinkedEntity(
+      c.env,
+      query.data.linked_type,
+      query.data.linked_id
+    );
+
+    if (!canLink.exists) {
+      return linkedEntityNotFound(c);
+    }
+
+    if (!canLink.allowed) {
+      return forbidden(c);
+    }
+  }
+
   const db = getDatabase(c.env);
   const filters = ["deleted_at IS NULL"];
   const bindings: string[] = [];
@@ -81,6 +98,12 @@ documentLinksRoute.get("/:id", async (c) => {
 
   if (!documentLink) {
     return notFound(c);
+  }
+
+  const accessError = await ensureCanAccessDocumentLink(c, documentLink);
+
+  if (accessError) {
+    return accessError;
   }
 
   return c.json({
@@ -165,10 +188,19 @@ documentLinksRoute.post("/", async (c) => {
     )
     .run();
 
+  const created = await findDocumentLink(c.env, id);
+
+  await writeAuditLog(c, {
+    entityType: "DOCUMENT_LINK",
+    entityId: id,
+    action: "CREATE",
+    newValue: created
+  });
+
   return c.json(
     {
       success: true,
-      data: await findDocumentLink(c.env, id)
+      data: created
     },
     201
   );
@@ -180,6 +212,12 @@ documentLinksRoute.put("/:id", async (c) => {
 
   if (!existing) {
     return notFound(c);
+  }
+
+  const accessError = await ensureCanAccessDocumentLink(c, existing);
+
+  if (accessError) {
+    return accessError;
   }
 
   const body = await c.req.json().catch(() => null);
@@ -196,29 +234,11 @@ documentLinksRoute.put("/:id", async (c) => {
     const canLink = await canAccessLinkedEntity(c.env, nextLinkedType, nextLinkedId);
 
     if (!canLink.exists) {
-      return c.json(
-        {
-          success: false,
-          error: {
-            code: "LINKED_ENTITY_NOT_FOUND",
-            message: "Linked entity does not exist."
-          }
-        },
-        404
-      );
+      return linkedEntityNotFound(c);
     }
 
     if (!canLink.allowed) {
-      return c.json(
-        {
-          success: false,
-          error: {
-            code: "FORBIDDEN",
-            message: "You do not have access to this linked entity."
-          }
-        },
-        403
-      );
+      return forbidden(c);
     }
   }
 
@@ -248,9 +268,19 @@ documentLinksRoute.put("/:id", async (c) => {
     )
     .run();
 
+  const updated = await findDocumentLink(c.env, id);
+
+  await writeAuditLog(c, {
+    entityType: "DOCUMENT_LINK",
+    entityId: id,
+    action: "UPDATE",
+    oldValue: existing,
+    newValue: updated
+  });
+
   return c.json({
     success: true,
-    data: await findDocumentLink(c.env, id)
+    data: updated
   });
 });
 
@@ -262,10 +292,29 @@ documentLinksRoute.delete("/:id", async (c) => {
     return notFound(c);
   }
 
+  const accessError = await ensureCanAccessDocumentLink(c, existing);
+
+  if (accessError) {
+    return accessError;
+  }
+
+  const now = new Date().toISOString();
+
   await getDatabase(c.env)
     .prepare("UPDATE document_links SET deleted_at = ?, updated_at = ? WHERE id = ?")
-    .bind(new Date().toISOString(), new Date().toISOString(), id)
+    .bind(now, now, id)
     .run();
+
+  await writeAuditLog(c, {
+    entityType: "DOCUMENT_LINK",
+    entityId: id,
+    action: "DELETE",
+    oldValue: existing,
+    newValue: {
+      id,
+      deleted_at: now
+    }
+  });
 
   return c.json({
     success: true,
@@ -305,6 +354,24 @@ async function resolveCreatedBy(c: AppContext) {
   return c.get("currentUser").id;
 }
 
+async function ensureCanAccessDocumentLink(c: AppContext, documentLink: DocumentLinkRow) {
+  const canLink = await canAccessLinkedEntity(
+    c.env,
+    documentLink.linked_type,
+    documentLink.linked_id
+  );
+
+  if (!canLink.exists) {
+    return linkedEntityNotFound(c);
+  }
+
+  if (!canLink.allowed) {
+    return forbidden(c);
+  }
+
+  return null;
+}
+
 function validationError(c: AppContext, details: unknown) {
   return c.json(
     {
@@ -329,5 +396,31 @@ function notFound(c: AppContext) {
       }
     },
     404
+  );
+}
+
+function linkedEntityNotFound(c: AppContext) {
+  return c.json(
+    {
+      success: false,
+      error: {
+        code: "LINKED_ENTITY_NOT_FOUND",
+        message: "Linked entity does not exist."
+      }
+    },
+    404
+  );
+}
+
+function forbidden(c: AppContext) {
+  return c.json(
+    {
+      success: false,
+      error: {
+        code: "FORBIDDEN",
+        message: "You do not have access to this linked entity."
+      }
+    },
+    403
   );
 }

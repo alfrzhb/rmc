@@ -58,6 +58,25 @@ DELETE /api/clients/:clientId/contacts/:contactId
 4. User links proposal, contract draft, PO, SPK, or other external document URLs.
 5. When an opportunity is won, it can become a project.
 
+Opportunity backend endpoints:
+
+```text
+GET    /api/opportunities
+GET    /api/opportunities/:id
+POST   /api/opportunities
+PUT    /api/opportunities/:id
+DELETE /api/opportunities/:id
+```
+
+Opportunity log endpoints:
+
+```text
+GET    /api/opportunities/:opportunityId/logs
+POST   /api/opportunities/:opportunityId/logs
+PUT    /api/opportunities/:opportunityId/logs/:logId
+DELETE /api/opportunities/:opportunityId/logs/:logId
+```
+
 ## Project Flow
 
 1. User creates or converts a project.
@@ -66,6 +85,34 @@ DELETE /api/clients/:clientId/contacts/:contactId
 4. User links project documents such as kickoff notes, client data, draft reports, and final reports.
 5. User closes project after delivery and finance completion.
 
+Project backend endpoints:
+
+```text
+GET    /api/projects
+GET    /api/projects/:id
+POST   /api/projects
+PUT    /api/projects/:id
+DELETE /api/projects/:id
+```
+
+Project member endpoints:
+
+```text
+GET    /api/projects/:projectId/members
+POST   /api/projects/:projectId/members
+PUT    /api/projects/:projectId/members/:memberId
+DELETE /api/projects/:projectId/members/:memberId
+```
+
+Project activity endpoints:
+
+```text
+GET    /api/projects/:projectId/activities
+POST   /api/projects/:projectId/activities
+PUT    /api/projects/:projectId/activities/:activityId
+DELETE /api/projects/:projectId/activities/:activityId
+```
+
 ## Finance Flow
 
 1. User creates invoices by project.
@@ -73,6 +120,64 @@ DELETE /api/clients/:clientId/contacts/:contactId
 3. User records payments received.
 4. User records operational payables and vendor bills.
 5. User links invoice files, proof of payment, vendor bills, and AP payment proofs as external document links.
+
+Invoice endpoints:
+
+```text
+GET    /api/invoices
+POST   /api/invoices
+PUT    /api/invoices/:id
+DELETE /api/invoices/:id
+```
+
+Payment endpoints:
+
+```text
+GET    /api/payments
+POST   /api/payments
+PUT    /api/payments/:id
+DELETE /api/payments/:id
+```
+
+Payable endpoints:
+
+```text
+GET    /api/payables
+POST   /api/payables
+PUT    /api/payables/:id
+DELETE /api/payables/:id
+```
+
+## Dashboard Flow
+
+Dashboard summarizes operational health for management review:
+
+1. Active/prospect client count.
+2. Open/won opportunity count.
+3. Active/overdue project count.
+4. Receivable overview from invoices and valid payments.
+5. Payable overview from AP/payables.
+6. Overdue invoice and payable lists.
+
+Dashboard endpoint:
+
+```text
+GET /api/dashboard/summary
+```
+
+## Audit Log Flow
+
+Important business mutations are recorded as audit logs:
+
+1. User creates, updates, deletes, or transitions a business entity.
+2. API stores the actor user, entity type, entity id, action, old value, new value, IP address, user agent, and timestamp.
+3. Owner/admin users can review the audit trail.
+
+Audit endpoint:
+
+```text
+GET /api/audit-logs
+```
 
 ## Document Link Flow
 

@@ -191,21 +191,134 @@ Acceptance criteria:
 
 ## Phase 6 - Opportunities
 
+Status: completed for backend foundation.
+
 Implement opportunity CRUD, status transitions, and opportunity logs.
+
+Implemented API:
+
+```text
+GET    /api/opportunities
+GET    /api/opportunities/:id
+POST   /api/opportunities
+PUT    /api/opportunities/:id
+DELETE /api/opportunities/:id
+GET    /api/opportunities/:opportunityId/logs
+GET    /api/opportunities/:opportunityId/logs/:logId
+POST   /api/opportunities/:opportunityId/logs
+PUT    /api/opportunities/:opportunityId/logs/:logId
+DELETE /api/opportunities/:opportunityId/logs/:logId
+```
+
+Acceptance criteria:
+
+- Active users can manage opportunities.
+- Opportunity list supports search, client filter, PIC filter, status filter, and pagination.
+- Create/update validates linked client exists.
+- Create/update validates PIC user exists and is active.
+- `WON` opportunity requires `deal_amount`.
+- Opportunity log CRUD works and stores the active user as `user_id`.
+- Delete uses soft delete for opportunity and logs.
 
 ## Phase 7 - Projects
 
+Status: completed for backend foundation.
+
 Implement project CRUD, project members, project activities, and progress tracking.
+
+Implemented API:
+
+```text
+GET    /api/projects
+GET    /api/projects/:id
+POST   /api/projects
+PUT    /api/projects/:id
+DELETE /api/projects/:id
+GET    /api/projects/:projectId/members
+GET    /api/projects/:projectId/members/:memberId
+POST   /api/projects/:projectId/members
+PUT    /api/projects/:projectId/members/:memberId
+DELETE /api/projects/:projectId/members/:memberId
+GET    /api/projects/:projectId/activities
+GET    /api/projects/:projectId/activities/:activityId
+POST   /api/projects/:projectId/activities
+PUT    /api/projects/:projectId/activities/:activityId
+DELETE /api/projects/:projectId/activities/:activityId
+```
+
+Acceptance criteria:
+
+- Active users can manage projects.
+- Project list supports search, client filter, PIC filter, status filter, and pagination.
+- Create/update validates linked client exists.
+- Create/update validates PIC user exists and is active.
+- Optional opportunity must exist and belong to the selected client.
+- Project member CRUD works and validates active users.
+- Project activity CRUD works and stores current user as `user_id`.
+- Activity `progress_snapshot` updates project `progress_percentage`.
+- Delete uses soft delete for project, members, and activities.
 
 ## Phase 8 - Finance
 
+Status: completed for backend foundation.
+
 Implement invoices, payments, and payables.
+
+Implemented API:
+
+```text
+GET    /api/invoices
+GET    /api/invoices/:id
+POST   /api/invoices
+PUT    /api/invoices/:id
+DELETE /api/invoices/:id
+GET    /api/payments
+GET    /api/payments/:id
+POST   /api/payments
+PUT    /api/payments/:id
+DELETE /api/payments/:id
+GET    /api/payables
+GET    /api/payables/:id
+POST   /api/payables
+PUT    /api/payables/:id
+DELETE /api/payables/:id
+```
+
+Acceptance criteria:
+
+- Active users can manage invoices, payments, and payables.
+- Invoice create/update validates project exists and derives client from project.
+- Payment create/update validates invoice exists and derives project/client from invoice.
+- Valid payments update invoice status to `PARTIALLY_PAID` or `PAID`.
+- Payable can optionally be linked to a project.
+- Delete uses soft delete.
 
 ## Phase 9 - Dashboard
 
+Status: completed for backend foundation.
+
 Implement summary cards, receivable overview, payable overview, overdue items, and project status summary.
 
+Implemented API:
+
+```text
+GET /api/dashboard/summary
+```
+
+Acceptance criteria:
+
+- Active users can access dashboard summary.
+- Summary includes active/prospect clients.
+- Summary includes open/won opportunities.
+- Summary includes active/overdue projects.
+- Receivable overview includes invoiced, paid, outstanding, and overdue amount.
+- Payable overview includes unpaid and overdue amount.
+- Status summary includes opportunities, projects, invoices, and payables.
+- Overdue item lists include overdue invoices and overdue payables.
+
 ## Phase 10 - Document Link Module
+
+Status: completed for backend foundation.
 
 Former Attachment Management is replaced by Document Link Management.
 
@@ -238,6 +351,27 @@ Acceptance criteria:
 ## Phase 11 - Audit Logs
 
 Track important create, update, delete, transition, and finance actions.
+
+Active backend scope:
+
+```text
+GET /api/audit-logs
+```
+
+Tracked actions:
+
+- `CREATE`
+- `UPDATE`
+- `DELETE`
+- `TRANSITION`
+- `FINANCE`
+
+Acceptance criteria:
+
+- Create, update, delete, transition, and finance mutations write audit logs.
+- Audit logs store actor user, entity type, entity id, action, old value, new value, IP address, user agent, and created timestamp.
+- `/api/audit-logs` supports pagination and filters for actor, entity, and action.
+- `/api/audit-logs` is restricted to `OWNER` and `ADMIN`.
 
 ## Phase 12 - Frontend Shell
 

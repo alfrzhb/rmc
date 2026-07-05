@@ -120,6 +120,23 @@ The active schema includes:
 - document_links
 - audit_logs
 
+## Audit Logs
+
+`audit_logs` records important create, update, delete, transition, and finance actions.
+
+Fields:
+
+- `id`
+- `actor_user_id`
+- `entity_type`
+- `entity_id`
+- `action`
+- `old_value`
+- `new_value`
+- `ip_address`
+- `user_agent`
+- `created_at`
+
 ## Rules
 
 1. `document_links.linked_type + linked_id` must point to an existing entity.

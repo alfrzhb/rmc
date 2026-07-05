@@ -1,6 +1,7 @@
 import { Hono, type Context } from "hono";
 import { createUserSchema, updateUserSchema } from "@ratama/validation";
 import type { AppEnv } from "../env";
+import { writeAuditLog } from "../lib/audit";
 import { getDatabase } from "../lib/database";
 
 type UserRow = {
@@ -93,10 +94,19 @@ usersRoute.post("/", async (c) => {
     );
   }
 
+  const created = await findUser(c, id);
+
+  await writeAuditLog(c, {
+    entityType: "USER",
+    entityId: id,
+    action: "CREATE",
+    newValue: created
+  });
+
   return c.json(
     {
       success: true,
-      data: await findUser(c, id)
+      data: created
     },
     201
   );
@@ -150,9 +160,19 @@ usersRoute.put("/:id", async (c) => {
     );
   }
 
+  const updated = await findUser(c, id);
+
+  await writeAuditLog(c, {
+    entityType: "USER",
+    entityId: id,
+    action: existing.status !== updated?.status ? "TRANSITION" : "UPDATE",
+    oldValue: existing,
+    newValue: updated
+  });
+
   return c.json({
     success: true,
-    data: await findUser(c, id)
+    data: updated
   });
 });
 
@@ -176,6 +196,18 @@ usersRoute.delete("/:id", async (c) => {
     )
     .bind(now, now, id)
     .run();
+
+  await writeAuditLog(c, {
+    entityType: "USER",
+    entityId: id,
+    action: "DELETE",
+    oldValue: existing,
+    newValue: {
+      id,
+      status: "INACTIVE",
+      deleted_at: now
+    }
+  });
 
   return c.json({
     success: true,

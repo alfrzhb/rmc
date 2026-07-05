@@ -7,6 +7,7 @@ import {
   clientUpdateSchema
 } from "@ratama/validation";
 import type { AppEnv } from "../env";
+import { writeAuditLog } from "../lib/audit";
 import { getDatabase } from "../lib/database";
 
 type ClientRow = {
@@ -166,10 +167,19 @@ clientsRoute.post("/", async (c) => {
     )
     .run();
 
+  const created = await findClient(c, id);
+
+  await writeAuditLog(c, {
+    entityType: "CLIENT",
+    entityId: id,
+    action: "CREATE",
+    newValue: created
+  });
+
   return c.json(
     {
       success: true,
-      data: await findClient(c, id)
+      data: created
     },
     201
   );
@@ -218,9 +228,19 @@ clientsRoute.put("/:id", async (c) => {
     )
     .run();
 
+  const updated = await findClient(c, id);
+
+  await writeAuditLog(c, {
+    entityType: "CLIENT",
+    entityId: id,
+    action: existing.status !== updated?.status ? "TRANSITION" : "UPDATE",
+    oldValue: existing,
+    newValue: updated
+  });
+
   return c.json({
     success: true,
-    data: await findClient(c, id)
+    data: updated
   });
 });
 
@@ -244,6 +264,17 @@ clientsRoute.delete("/:id", async (c) => {
     .prepare("UPDATE client_contacts SET deleted_at = ?, updated_at = ? WHERE client_id = ?")
     .bind(now, now, id)
     .run();
+
+  await writeAuditLog(c, {
+    entityType: "CLIENT",
+    entityId: id,
+    action: "DELETE",
+    oldValue: existing,
+    newValue: {
+      id,
+      deleted_at: now
+    }
+  });
 
   return c.json({
     success: true,
@@ -319,10 +350,19 @@ clientsRoute.post("/:clientId/contacts", async (c) => {
     )
     .run();
 
+  const created = await findContact(c, client.id, id);
+
+  await writeAuditLog(c, {
+    entityType: "CLIENT_CONTACT",
+    entityId: id,
+    action: "CREATE",
+    newValue: created
+  });
+
   return c.json(
     {
       success: true,
-      data: await findContact(c, client.id, id)
+      data: created
     },
     201
   );
@@ -399,9 +439,19 @@ clientsRoute.put("/:clientId/contacts/:contactId", async (c) => {
     )
     .run();
 
+  const updated = await findContact(c, client.id, contactId);
+
+  await writeAuditLog(c, {
+    entityType: "CLIENT_CONTACT",
+    entityId: contactId,
+    action: "UPDATE",
+    oldValue: existing,
+    newValue: updated
+  });
+
   return c.json({
     success: true,
-    data: await findContact(c, client.id, contactId)
+    data: updated
   });
 });
 
@@ -420,6 +470,17 @@ clientsRoute.delete("/:clientId/contacts/:contactId", async (c) => {
     )
     .bind(now, now, contact.id, contact.client_id)
     .run();
+
+  await writeAuditLog(c, {
+    entityType: "CLIENT_CONTACT",
+    entityId: contact.id,
+    action: "DELETE",
+    oldValue: contact,
+    newValue: {
+      id: contact.id,
+      deleted_at: now
+    }
+  });
 
   return c.json({
     success: true,
