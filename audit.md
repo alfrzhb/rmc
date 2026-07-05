@@ -7,6 +7,7 @@ Tanggal update Phase 15 staging user bootstrap: 2026-07-05
 Tanggal update Phase 15 staging functional verification: 2026-07-05
 Tanggal finalisasi Phase 15 staging verification: 2026-07-05
 Tanggal update pre-production Users Management refinement: 2026-07-05
+Tanggal deploy staging Users Management refinement: 2026-07-05
 
 ## Ringkasan Eksekutif
 
@@ -24,6 +25,7 @@ Kesimpulan terbaru:
 - Delete action sudah memakai confirmation.
 - Form create reset setelah mutation sukses.
 - Settings -> Users Management sudah tersedia untuk OWNER/ADMIN.
+- Users Management refinement sudah dideploy ke Pages staging.
 - CI workflow sudah ditambahkan untuk lint/typecheck/build.
 - Phase 14 local smoke test tetap lulus.
 
@@ -211,12 +213,46 @@ Verification:
   - STAFF `GET /api/users`: ditolak `403`, sesuai ekspektasi.
   - INACTIVE user `GET /api/clients`: ditolak `403`, sesuai ekspektasi.
 
+Staging deployment and verification per 2026-07-05:
+
+- Worker staging tidak dideploy ulang karena tidak ada perubahan backend terkait Users Management.
+- Worker staging tetap `ratama-tracker-api-staging`.
+- Pages staging berhasil dideploy ulang ke `ratama-tracker-web-staging`.
+- Deployment URL: `https://65a764e0.ratama-tracker-web-staging.pages.dev`.
+- Pages deployment source: `641c289`.
+- Cloudflare Pages lists the deployment under the Pages project's `Production` environment for branch `develop`; this is still the staging Pages project, not app production deployment.
+- Direct Pages deployment merespons `200`.
+- Bundle staging baru memuat teks `Users Management`.
+- Bundle staging baru memuat pesan `Akun Anda belum terdaftar di aplikasi. Hubungi OWNER/ADMIN.`
+- Bundle staging baru memuat help text `Login menggunakan Cloudflare Access`.
+- DNS `staging-rmc.alfrzhb.com` tetap resolve ke Cloudflare.
+- `https://staging-rmc.alfrzhb.com` dari CLI tanpa session Access mengembalikan `302 Found` ke Cloudflare Access login.
+- `https://staging-rmc.alfrzhb.com/settings` dari CLI tanpa session Access mengembalikan `302 Found` ke Cloudflare Access login.
+- `https://staging-rmc.alfrzhb.com/api/health` dari CLI tanpa session Access mengembalikan `302 Found` ke Cloudflare Access login.
+- Hasil `302` ini expected karena staging dilindungi Cloudflare Access.
+
+Staging browser verification yang masih membutuhkan session Access:
+
+- OWNER `v60code@gmail.com` membuka Settings -> Users Management.
+- OWNER list users.
+- OWNER create user test.
+- OWNER edit role/status user test.
+- OWNER deactivate user test.
+- OWNER soft delete user test.
+- STAFF tidak bisa akses Users Management.
+- INACTIVE user tidak bisa memakai protected API.
+- `/api/auth/me` tetap berhasil untuk OWNER setelah Pages redeploy.
+
+Agent tidak menjalankan browser-authenticated staging CRUD karena tidak memiliki cookie/session Cloudflare Access atau service token test. Local API verification untuk skenario yang sama sudah lulus sebelum deploy.
+
 Guardrail:
 
 - Production tidak dideploy.
 - Production D1 tidak dibuat atau diubah.
 - DNS `rmc.alfrzhb.com` tidak dibuat.
-- Staging yang sudah berjalan tidak diubah/deploy ulang.
+- DNS staging tidak diubah.
+- Pages staging dideploy ulang sesuai permintaan untuk membawa Users Management refinement.
+- Worker staging tidak diubah karena backend tidak berubah.
 - R2 tidak dipakai.
 - Binary upload tidak diaktifkan.
 

@@ -2,7 +2,7 @@
 
 ## Current Position
 
-The project has completed Phase 15 staging verification and the pre-production Users Management refinement. Backend foundation APIs are implemented, the frontend supports the main module workflows, staging browser verification passed, and Settings now includes OWNER/ADMIN-only Users Management.
+The project has completed Phase 15 staging verification and the pre-production Users Management refinement. Backend foundation APIs are implemented, the frontend supports the main module workflows, staging browser verification passed, and Settings now includes OWNER/ADMIN-only Users Management. The Users Management refinement has been deployed to Pages staging.
 
 D1 staging has been created and migrations have been applied. Production has not been deployed. Production D1, production DNS, and production deployment remain blocked until explicit confirmation.
 
@@ -455,6 +455,16 @@ Verification:
   - OWNER can soft delete/deactivate users.
   - STAFF cannot access Users Management API.
   - INACTIVE users cannot use protected APIs.
+
+Staging deployment:
+
+- Pages staging was redeployed after the Users Management refinement.
+- Deployment URL: `https://65a764e0.ratama-tracker-web-staging.pages.dev`.
+- Direct Pages deployment returns `200`.
+- The deployed bundle includes Users Management UI text and the unregistered-user message.
+- `https://staging-rmc.alfrzhb.com` and `https://staging-rmc.alfrzhb.com/settings` remain protected by Cloudflare Access and redirect unauthenticated CLI requests to Access login.
+- Worker staging was not redeployed because this refinement did not change backend code.
+- Browser functional verification for OWNER/STAFF/INACTIVE on staging requires a logged-in Cloudflare Access browser session.
 
 ## Phase 14 - Testing
 
